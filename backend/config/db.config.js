@@ -13,15 +13,15 @@ const mongoose = require("mongoose");
  *                    la base de datos.
  */
 const createConnection = async () => {
-
-  
   const MONGODB_URI = process.env.MONGODB_URI;
   mongoose.connection.on("error", (error) => {
     console.error(`[Mongoose] ${error}`);
   });
 
   mongoose.connection.on("connected", (error) => {
-    console.log(`[Mongoose] Conexión establecida con la base de datos ${mongoose.connection.name}`);
+    console.log(
+      `[Mongoose] Conexión establecida con la base de datos ${mongoose.connection.name}`
+    );
   });
 
   mongoose.connection.on("disconnected", (error) => {
