@@ -12,8 +12,10 @@ const mongoose = require("mongoose");
  * @returns {Promise} Posible resultado de la conexión por defecto con
  *                    la base de datos.
  */
+const { MONGODB_URI, MONGODB_URI_TEST, NODE_ENV } = process.env;
+
 const createConnection = async () => {
-  const MONGODB_URI = process.env.MONGODB_URI;
+  const actualURL = NODE_ENV === "test" ? MONGODB_URI_TEST : MONGODB_URI;
   mongoose.connection.on("error", (error) => {
     console.error(`[Mongoose] ${error}`);
   });
@@ -28,7 +30,7 @@ const createConnection = async () => {
     console.log(`[Mongoose] Desconexión con la base de datos`);
   });
 
-  return mongoose.connect(MONGODB_URI);
+  return mongoose.connect(actualURL);
 };
 
 module.exports = { createConnection };

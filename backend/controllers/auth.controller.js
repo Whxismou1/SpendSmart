@@ -1,11 +1,14 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 require("dotenv").config();
 
 const UserModel = require("../models/user.model");
 const {
   sendVerificationEmail,
   sendWelcomeEmail,
+  sendResetPasswordRequest,
+  sendPasswordResetSucces,
 } = require("../config/mail.config");
 
 const register = async (req, res) => {
@@ -120,7 +123,7 @@ const verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({
+      return res.status(401).json({
         success: false,
         message: "Invalid or expired verification code",
       });
@@ -148,4 +151,87 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-module.exports = { register, login, verifyEmail };
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message:
+          "If the email is registered, a password reset link has been sent.",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetTokenExpiresAt = Date.now() + 1 * 60 * 60 * 1000;
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordTokenExpiresAt = resetTokenExpiresAt;
+    await user.save();
+
+    const url = process.env.BASE_URL + "/reset-password/" + resetToken;
+
+    await sendResetPasswordRequest(user.email, url);
+    return res.status(200).json({
+      success: true,
+      message:
+        "If the email is registered, a password reset link has been sent.",
+    });
+  } catch (error) {
+    console.log("error in verifyEmail ", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { resetToken } = req.params;
+  const { password } = req.body;
+
+  try {
+    const user = await UserModel.findOne({
+      resetPasswordToken: resetToken,
+      resetPasswordTokenExpiresAt: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired reset token" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpiresAt = undefined;
+    await user.save();
+    await sendPasswordResetSucces(user.email);
+    res.status(200).json({ success: true, message: "sss" });
+  } catch (error) {
+    console.log("error in verifyEmail ", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Password reset successful" });
+  }
+};
+
+const logout = async (req, res) => {
+  const cookieToken = req.cookies.jwt_token;
+
+  if (!cookieToken) {
+    return res.status(401).json({ success: false, message: "Invalid cookie" });
+  }
+
+  res.clearCookie("jwt_token");
+  res.status(200).json({ success: true, message: "Logged out successfully" });
+};
+
+module.exports = {
+  register,
+  login,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  logout,
+};
