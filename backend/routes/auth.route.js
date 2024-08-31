@@ -1,6 +1,7 @@
 const express = require("express");
 
-const authRouter = require("../controllers/auth.controller");
+const authController = require("../controllers/auth.controller");
+const verifyToken = require("../middlewares/checkAuth");
 const {
   registerValidationRules,
   loginValidationRules,
@@ -13,17 +14,25 @@ authRoutes.post(
   "/register",
   registerValidationRules(),
   validate,
-  authRouter.register
+  authController.register
 );
-authRoutes.post("/login", loginValidationRules(), validate, authRouter.login);
+authRoutes.post(
+  "/login",
+  loginValidationRules(),
+  validate,
+  authController.login
+);
 authRoutes.post(
   "/verify-email",
   verifyEmailValidationRules(),
   validate,
-  authRouter.verifyEmail
+  authController.verifyEmail
 );
 
-authRoutes.post("/forgot-password", authRouter.forgotPassword);
-authRoutes.post("/reset-password/:resetToken", authRouter.resetPassword);
-authRoutes.get("/logout", authRouter.logout);
+authRoutes.post("/forgot-password", authController.forgotPassword);
+authRoutes.post("/reset-password/:resetToken", authController.resetPassword);
+authRoutes.get("/logout", authController.logout);
+
+authRoutes.get("/check-auth", verifyToken, authController.checkAuth);
+
 module.exports = authRoutes;

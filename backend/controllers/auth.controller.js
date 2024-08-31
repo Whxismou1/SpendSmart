@@ -95,7 +95,7 @@ const login = async (req, res) => {
     res.cookie("jwt_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -227,6 +227,23 @@ const logout = async (req, res) => {
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
+const checkAuth = async (req, res) => {
+  const id = req.userID;
+
+  try {
+    const user = await UserModel.findById(id).select("-password");
+
+    if (!user) {
+      res.status(404).json({ success: true, message: "Something went wrong" });
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.log("error in checkauth ", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -234,4 +251,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   logout,
+  checkAuth,
 };
