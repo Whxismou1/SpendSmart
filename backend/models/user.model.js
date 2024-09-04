@@ -25,6 +25,20 @@ const userSchema = new mongoose.Schema(
     verificationTokenExpiresAt: Date,
     resetPasswordToken: String,
     resetPasswordTokenExpiresAt: Date,
+    balance: {
+      type: Number,
+      default: 0,
+    },
+    phoneNumber: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          return /\+?\d{7,15}$/.test(v);
+        },
+        message: (props) =>
+          `${props.value} no es un número de teléfono válido!`,
+      },
+    },
   },
   { timestamps: true }
 );
