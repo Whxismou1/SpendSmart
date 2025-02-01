@@ -8,6 +8,9 @@ const registerValidationRules = () => {
     body("password")
       .isLength({ min: 1 })
       .withMessage("Password must be at least 12 characters long"),
+    body("confirmPassword")
+      .isLength({ min: 1 })
+      .withMessage("Confirm password is required"),
   ];
 };
 

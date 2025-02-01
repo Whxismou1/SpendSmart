@@ -11,4 +11,6 @@ movementRouter.delete(
   movementController.removeMovementByID
 );
 
+movementRouter.post("/downloadMovements", movementController.downloadMovements);
+
 module.exports = movementRouter;

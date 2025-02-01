@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    dateOfBirth: {
+      type: Date,
+      required: true,
+    },
     password: {
       type: String,
       required: true,
@@ -38,6 +42,11 @@ const userSchema = new mongoose.Schema(
         message: (props) =>
           `${props.value} no es un número de teléfono válido!`,
       },
+    },
+    currency: {
+      type: String,
+      enum: ["USD", "EUR"],
+      required: true,
     },
   },
   { timestamps: true }

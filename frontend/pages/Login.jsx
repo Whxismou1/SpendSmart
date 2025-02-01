@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { login } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Button, Checkbox, FormControlLabel,TextField } from "@mui/material";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -28,26 +30,37 @@ const Login = () => {
     <div>
       <form onSubmit={handleSubmit}>
         <label htmlFor="email">Email: </label>
-        <input
+        <TextField
           name="email"
           type="email"
           placeholder="user@user.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={loading}
+          variant="standard"
         />
+        <br />
         <label htmlFor="password">Password: </label>
-        <input
+        <TextField
           name="password"
           type="password"
           placeholder="*******"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           disabled={loading}
+          variant="standard"
         />
-        <input type="submit" value={"LogIn"} />
+        <br />
+        <FormControlLabel control={<Checkbox defaultChecked />} label="Condiciones de uso" />
+        <br />
+        <Button type="submit" variant="outlined" size="medium">Login</Button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
+      <div>
+        <Link to="/forgot-password">Forgot password</Link>
+        <br />
+        Dont have an account? <Link to="/register">Sign Up</Link>
+      </div>
     </div>
   );
 };

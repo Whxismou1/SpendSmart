@@ -12,12 +12,25 @@ const {
 } = require("../config/mail.config");
 
 const register = async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
+  const { name, email, password, confirmPassword, birthdate, currency } = req.body;
+  if (!name || !email || !password || !confirmPassword || !birthdate || !currency) {
     return res
       .status(400)
       .json({ success: false, message: "All fields are required" });
+  }
+
+  if (password !== confirmPassword) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Passwords do not match" });
+  }
+
+  const age = new Date().getFullYear() - new Date(birthdate).getFullYear();
+  if (age < 14) {
+    return res.status(400).json({
+      success: false,
+      message: "Incorrect date of birth.",
+    });
   }
 
   try {
@@ -33,17 +46,18 @@ const register = async (req, res) => {
     ).toString();
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log(hashedPassword);
     const user = new UserModel({
       name,
       email,
       password: hashedPassword,
       verificationToken,
       verificationTokenExpiresAt: Date.now() + 15 * 60 * 1000,
+      dateOfBirth: birthdate,
+      currency,
     });
-
+    console.log(user);
     await user.save();
-
+    console.log("user saved");
     await sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({
@@ -170,7 +184,7 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordTokenExpiresAt = resetTokenExpiresAt;
     await user.save();
 
-    const url = process.env.BASE_URL + "/reset-password/" + resetToken;
+    const url = process.env.FRONTEND_URL + "/reset-password/" + resetToken;
 
     await sendResetPasswordRequest(user.email, url);
     return res.status(200).json({
@@ -187,7 +201,7 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { resetToken } = req.params;
   const { password } = req.body;
-
+  console.log(resetToken, password);
   try {
     const user = await UserModel.findOne({
       resetPasswordToken: resetToken,

@@ -42,3 +42,91 @@ export const logout = async () => {
     throw error;
   }
 };
+
+export const register = async (email, name, password, confirmPassword,  birthdate, currency) => {
+  try {
+    const res = await fetch(BASE_URL + "/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, name, password, confirmPassword, birthdate, currency }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to register");
+    }
+
+    return data;
+  } catch (error) {
+    console.log("Error during register: ", error.message);
+    throw error;
+  }
+};
+
+export const verifyEmail = async (verificationCode) => {
+  try {
+    const res = await fetch(BASE_URL + "/verify-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ verificationCode }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to verify email");
+    }
+
+    return data;
+  } catch (error) {
+    console.log("Error during verification email: ", error.message);
+    throw error;
+  }
+};
+
+export const forgotPassword = async (email) => {
+  try {
+    const res = await fetch(BASE_URL + "/forgot-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to verify email");
+    }
+
+    return data;
+  } catch (error) {
+    console.log("Error during verification email: ", error.message);
+    throw error;
+  }
+};
+
+export const resetPassword = async (password, resetToken) => {
+  try {
+    const res = await fetch(BASE_URL + "/reset-password/" + resetToken, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to verify email");
+    }
+
+    return data;
+  } catch (error) {
+    console.log("Error during reset password: ", error.message);
+    throw error;
+  }
+};

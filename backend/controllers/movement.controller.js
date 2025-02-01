@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
+const ExcelJS = require("exceljs");
 
 const userModel = require("../models/user.model");
 const movementModel = require("../models/movement.model");
 const movementTypes = require("../utils/movements.types");
+const e = require("express");
 
 const addMovement = async (req, res) => {
   const token = req.cookies.jwt_token;
@@ -45,6 +47,10 @@ const addMovement = async (req, res) => {
 const getAllMovements = async (req, res) => {
   const token = req.cookies.jwt_token;
 
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
+
   try {
     const dataDecoded = jwt.decode(token, process.env.JWT_SECRET);
     const userID = dataDecoded.userId;
@@ -54,7 +60,7 @@ const getAllMovements = async (req, res) => {
     res.status(200).json({ success: true, userMovements });
   } catch (error) {
     console.log("error in getAllMovements ", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error" + error });
   }
 };
 
@@ -63,7 +69,6 @@ const removeMovementByID = async (req, res) => {
 
   try {
     const movementData = await movementModel.findByIdAndDelete(movementId);
-
     if (!movementData) {
       return res
         .status(404)
@@ -85,4 +90,75 @@ const removeMovementByID = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-module.exports = { addMovement, getAllMovements, removeMovementByID };
+
+const downloadMovements = async (req, res) => {
+  const token = req.cookies.jwt_token;
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
+
+  const { movements } = req.body;
+  if (!movements || movements.length === 0) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No movements provided" });
+  }
+
+  try {
+    const dataDecoded = jwt.decode(token, process.env.JWT_SECRET);
+    const userData = await userModel.findById(dataDecoded.userId);
+
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Movements");
+    worksheet.columns = [
+      { header: "Descripción", key: "description", width: 30 },
+      { header: "Cantidad", key: "quantity", width: 15 },
+      { header: "Categoría", key: "category", width: 20 },
+      { header: "Tipo", key: "type", width: 15 },
+      { header: "Fecha", key: "date", width: 20 },
+      { header: "", key: "", width: 20 },
+      { header: "Balance", key: "balance", width: 20 },
+    ];
+
+    movements.forEach((movement, index) => {
+      let rowData = {
+        description: movement.movementDescription,
+        quantity: movement.quantity + "€",
+        category: movement.movementCategory,
+        type: movement.movementType,
+        date: movement.movementDate,
+      };
+      if (index === 0) {
+        rowData.balance = userData.balance +"€";
+      }
+
+      worksheet.addRow(rowData);
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=movimientos.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.log("error in downloadMovements ", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error: " + error.message });
+  }
+
+};
+
+module.exports = {
+  addMovement,
+  getAllMovements,
+  removeMovementByID,
+  downloadMovements,
+};
