@@ -15,7 +15,8 @@ const mongoose = require("mongoose");
 const { MONGODB_URI, MONGODB_URI_TEST, NODE_ENV } = process.env;
 
 const createConnection = async () => {
-  const actualURL = NODE_ENV === "test" ? MONGODB_URI_TEST : MONGODB_URI;
+  const actualURL = NODE_ENV === "development" ? MONGODB_URI_TEST : MONGODB_URI;
+
   mongoose.connection.on("error", (error) => {
     console.error(`[Mongoose] ${error}`);
   });

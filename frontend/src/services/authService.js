@@ -1,26 +1,21 @@
 const BASE_URL = import.meta.env.VITE_BACKEND_URL + "/api/v1/auth";
 export const login = async (email, password) => {
-  try {
-    const response = await fetch(BASE_URL + "/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
+  const response = await fetch(BASE_URL + "/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+    credentials: "include",
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to login");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error during login:", error.message);
-    throw error;
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to login");
   }
+
+  return data;
 };
 
 export const logout = async () => {
@@ -43,14 +38,28 @@ export const logout = async () => {
   }
 };
 
-export const register = async (email, name, password, confirmPassword,  birthdate, currency) => {
+export const register = async (
+  email,
+  name,
+  password,
+  confirmPassword,
+  birthdate,
+  currency
+) => {
   try {
     const res = await fetch(BASE_URL + "/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, name, password, confirmPassword, birthdate, currency }),
+      body: JSON.stringify({
+        email,
+        name,
+        password,
+        confirmPassword,
+        birthdate,
+        currency,
+      }),
     });
 
     const data = await res.json();
