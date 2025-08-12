@@ -4,8 +4,8 @@ const movementRouter = express.Router();
 
 const movementController = require("../controllers/movement.controller");
 
-movementRouter.post("/addMovement", movementController.addMovement);
-movementRouter.get("/getAllMovements", movementController.getAllMovements);
+movementRouter.post("/add", movementController.addMovement);
+movementRouter.get("/all", movementController.getAllMovements);
 movementRouter.delete(
   "/removeMovementByID/:id",
   movementController.removeMovementByID

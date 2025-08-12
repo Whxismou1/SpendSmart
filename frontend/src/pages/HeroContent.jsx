@@ -152,7 +152,7 @@ export const HeroContent = () => {
                 whileTap={{ scale: 0.95 }}
                 className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full text-lg font-semibold flex items-center justify-center space-x-2 hover:from-emerald-600 hover:to-blue-700 transition-all"
               >
-                <span>Comenzar Gratis</span>
+                <Link to="/login">Comenzar Gratis</Link>
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
             </div>

@@ -12,8 +12,16 @@ const {
 } = require("../config/mail.config");
 
 const register = async (req, res) => {
-  const { name, email, password, confirmPassword, birthdate, currency } = req.body;
-  if (!name || !email || !password || !confirmPassword || !birthdate || !currency) {
+  const { name, email, password, confirmPassword, birthdate, currency } =
+    req.body;
+  if (
+    !name ||
+    !email ||
+    !password ||
+    !confirmPassword ||
+    !birthdate ||
+    !currency
+  ) {
     return res
       .status(400)
       .json({ success: false, message: "All fields are required" });
@@ -41,7 +49,7 @@ const register = async (req, res) => {
         .json({ success: false, message: "User already exists!" });
     }
 
-    const verificationToken = Math.floor(
+    const verificationCode = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
 
@@ -50,15 +58,15 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      verificationToken,
-      verificationTokenExpiresAt: Date.now() + 15 * 60 * 1000,
+      verificationCode,
+      verificationCodeExpiresAt: Date.now() + 15 * 60 * 1000,
       dateOfBirth: birthdate,
       currency,
     });
     console.log(user);
     await user.save();
     console.log("user saved");
-    await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({
       success: true,
@@ -132,8 +140,8 @@ const verifyEmail = async (req, res) => {
 
   try {
     const user = await UserModel.findOne({
-      verificationToken: verificationCode,
-      verificationTokenExpiresAt: { $gt: Date.now() },
+      verificationCode: verificationCode,
+      verificationCodeExpiresAt: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -144,8 +152,8 @@ const verifyEmail = async (req, res) => {
     }
 
     user.accountActivated = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpiresAt = undefined;
+    user.verificationCode = undefined;
+    user.verificationCodeExpiresAt = undefined;
 
     await user.save();
 
@@ -231,21 +239,20 @@ const resetPassword = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-  const cookieToken = req.cookies.jwt_token;
+  res.clearCookie("jwt_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
 
-  if (!cookieToken) {
-    return res.status(401).json({ success: false, message: "Invalid cookie" });
-  }
-
-  res.clearCookie("jwt_token");
-  res.status(200).json({ success: true, message: "Logged out successfully" });
+  return res
+    .status(200)
+    .json({ success: true, message: "Logged out successfully" });
 };
 
 const checkAuth = async (req, res) => {
-  const id = req.userID;
-
   try {
-    const user = await UserModel.findById(id).select("-password");
+    const user = await UserModel.findById(req.userID).select("-password");
 
     if (!user) {
       res.status(404).json({ success: true, message: "Something went wrong" });
@@ -258,6 +265,35 @@ const checkAuth = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Password didnt match " });
+    }
+
+    const user = await UserModel.findById(req.userID);
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid operation." });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    user.password = newHash;
+
+    await user.save();
+    return res.status(200).json({ message: "Password changed successfully!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -266,4 +302,5 @@ module.exports = {
   resetPassword,
   logout,
   checkAuth,
+  changePassword,
 };

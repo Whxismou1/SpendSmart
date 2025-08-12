@@ -1,15 +1,13 @@
 const BASE_URL = import.meta.env.VITE_BACKEND_URL + "/api/v1/movements";
 
-export const downloadMovements = async (movements) => {
+export const downloadMovements = async () => {
   try {
     const response = await fetch(BASE_URL + "/downloadMovements", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-
       },
       credentials: "include",
-      body: JSON.stringify({ movements }),
     });
 
     if (!response.ok) {

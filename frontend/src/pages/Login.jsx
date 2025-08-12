@@ -3,6 +3,7 @@ import { ArrowLeft, Eye, EyeOff, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
+import useAuthStore from "../stores/authStore";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +26,9 @@ const Login = () => {
     setError("");
 
     try {
-      await login(formData.email, formData.password);
+      const data = await login(formData.email, formData.password);
+      console.log(data)
+      useAuthStore.getState().loginSuccess(data.user);
       navigate("/dashboard");
     } catch (error) {
       setError(error.message);

@@ -96,18 +96,18 @@ const downloadMovements = async (req, res) => {
   if (!token) {
     return res.status(401).json({ success: false, message: "Invalid token" });
   }
-
-  const { movements } = req.body;
-  if (!movements || movements.length === 0) {
-    return res
-      .status(400)
-      .json({ success: false, message: "No movements provided" });
-  }
-
   try {
     const dataDecoded = jwt.decode(token, process.env.JWT_SECRET);
     const userData = await userModel.findById(dataDecoded.userId);
+    const movements = await movementModel
+      .find({ userID: userData._id })
+      .sort({ movementDate: -1 });
 
+    if (!movements.length) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No movements found" });
+    }
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Movements");
@@ -130,7 +130,7 @@ const downloadMovements = async (req, res) => {
         date: movement.movementDate,
       };
       if (index === 0) {
-        rowData.balance = userData.balance +"€";
+        rowData.balance = userData.balance + "€";
       }
 
       worksheet.addRow(rowData);
@@ -153,7 +153,6 @@ const downloadMovements = async (req, res) => {
       .status(500)
       .json({ success: false, message: "Server error: " + error.message });
   }
-
 };
 
 module.exports = {

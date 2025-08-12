@@ -32,7 +32,8 @@ authRoutes.post(
 authRoutes.post("/forgot-password", authController.forgotPassword);
 authRoutes.post("/reset-password/:resetToken", authController.resetPassword);
 authRoutes.get("/logout", authController.logout);
+authRoutes.post("/change-password", verifyToken, authController.changePassword);
 
-authRoutes.get("/check-auth", verifyToken, authController.checkAuth);
+authRoutes.get("/me", verifyToken, authController.checkAuth);
 
 module.exports = authRoutes;
