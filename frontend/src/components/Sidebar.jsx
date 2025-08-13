@@ -1,17 +1,20 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  Coins,
+  CreditCard,
+  FileChartColumn,
+  Home,
+  LogOut,
+  PieChart,
+  Settings,
   TrendingUp,
   X,
-  Home,
-  PieChart,
-  CreditCard,
-  Settings,
-  LogOut,
 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import useAuthStore from "../stores/authStore";
 import { toast } from "react-hot-toast";
+import useAuthStore from "../stores/authStore";
 
+// eslint-disable-next-line react/prop-types
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,18 +37,23 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   const links = [
     { to: "/dashboard", icon: <Home size={20} />, label: "Dashboard" },
     {
-      to: "/dashboard/transactions",
+      to: "/movements",
       icon: <CreditCard size={20} />,
       label: "Transacciones",
     },
     {
-      to: "/dashboard/categories",
+      to: "/categories",
       icon: <PieChart size={20} />,
       label: "Categorías",
     },
     {
-      to: "/dashboard/budgets",
-      icon: <Settings size={20} />,
+      to: "/market",
+      icon: <Coins size={20} />,
+      label: "Mercado",
+    },
+    {
+      to: "/budgets",
+      icon: <FileChartColumn size={20} />,
       label: "Presupuestos",
     },
     { to: "/profile", icon: <Settings size={20} />, label: "Mi Perfil" },

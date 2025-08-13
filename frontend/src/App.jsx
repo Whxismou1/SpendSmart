@@ -13,6 +13,10 @@ import AddMovementPage from "./pages/AddMovementPage";
 import { NotFound } from "./pages/NotFound";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CategoriesPage from "./pages/CategoriesPage";
+import BudgetPage from "./pages/BudgetPage";
+import MarketPage from "./pages/MarketPage";
+import MovementsPage from "./pages/MovementsPage";
 function App() {
   return (
     <>
@@ -24,12 +28,17 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        
+
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-movement" element={<AddMovementPage />} />
-        </Route>
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/budgets" element={<BudgetPage />} />
+          <Route path="/market" element={<MarketPage />} />
+          <Route path="/movements" element={<MovementsPage />} />
 
+
+        </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

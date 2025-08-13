@@ -2,18 +2,15 @@ import { motion } from "framer-motion";
 import {
   ArrowDownRight,
   ArrowUpRight,
-  Calendar,
   DollarSign,
   Download,
-  Menu,
-  Plus,
-  Search,
+  Menu
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { downloadMovements } from "../services/movementService";
-import Sidebar from "../components/Sidebar";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import { downloadMovements } from "../services/movementService";
 
 // Datos de ejemplo
 const mockTransactions = [
@@ -76,7 +73,7 @@ export default function Dashboard() {
       a.remove();
       window.URL.revokeObjectURL(url);
       toast.success("Se ha descargado correctamente");
-    } catch (error) {
+    } catch {
       toast.error("Error descargando los movimientos");
     }
   };
@@ -112,23 +109,6 @@ export default function Dashboard() {
               <h1 className="text-xl font-bold text-slate-100">Dashboard</h1>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="relative hidden md:block">
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  className="bg-slate-700 border border-slate-600 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent w-64 text-slate-100 placeholder-slate-400"
-                />
-                <Search
-                  size={18}
-                  className="absolute left-3 top-2.5 text-slate-400"
-                />
-              </div>
-
-              <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-                <span className="font-bold text-white">JS</span>
-              </div>
-            </div>
           </div>
         </header>
 
@@ -294,18 +274,18 @@ export default function Dashboard() {
 
           {/* Botones de acción */}
           <div className="fixed bottom-6 right-6 flex flex-col space-y-4">
-            <button className="w-12 h-12 rounded-full bg-slate-800 backdrop-blur-sm border border-slate-700 flex items-center justify-center hover:bg-slate-700 transition-colors text-slate-100">
+            {/* <button className="w-12 h-12 rounded-full bg-slate-800 backdrop-blur-sm border border-slate-700 flex items-center justify-center hover:bg-slate-700 transition-colors text-slate-100">
               <Calendar size={20} />
-            </button>
+            </button> */}
             <button
               onClick={handleDownloadMovements}
               className="w-12 h-12 rounded-full bg-slate-800 backdrop-blur-sm border border-slate-700 flex items-center justify-center hover:bg-slate-700 transition-colors text-slate-100"
             >
               <Download size={20} />
             </button>
-            <button className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity">
+            {/* <button className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity">
               <Plus size={24} className="text-white" />
-            </button>
+            </button> */}
           </div>
         </main>
       </div>
