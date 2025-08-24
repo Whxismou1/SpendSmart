@@ -1,16 +1,27 @@
 const express = require("express");
 
 const movementRouter = express.Router();
-
+const authMiddleware = require("../middlewares/checkAuth");
 const movementController = require("../controllers/movement.controller");
 
-movementRouter.post("/add", movementController.addMovement);
-movementRouter.get("/all", movementController.getAllMovements);
+movementRouter.post("/add", authMiddleware, movementController.addMovement);
+movementRouter.get("/all", authMiddleware, movementController.getAllMovements);
 movementRouter.delete(
   "/removeMovementByID/:id",
+  authMiddleware,
   movementController.removeMovementByID
 );
 
-movementRouter.post("/downloadMovements", movementController.downloadMovements);
+movementRouter.post(
+  "/downloadMovements",
+  authMiddleware,
+  movementController.downloadMovements
+);
+
+movementRouter.get(
+  "/categories",
+  authMiddleware,
+  movementController.getCategories
+);
 
 module.exports = movementRouter;

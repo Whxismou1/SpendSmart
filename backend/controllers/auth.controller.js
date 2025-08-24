@@ -209,7 +209,6 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { resetToken } = req.params;
   const { password } = req.body;
-  console.log(resetToken, password);
   try {
     const user = await UserModel.findOne({
       resetPasswordToken: resetToken,
@@ -235,6 +234,30 @@ const resetPassword = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Password reset successful" });
+  }
+};
+
+const validateResetToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ valid: false, message: "Token requerido" });
+    }
+
+    const user = await UserModel.findOne({ resetPasswordToken: token });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ valid: false, message: "Token inválido o expirado" });
+    }
+
+    return res.json({ valid: true });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ valid: false, message: "Error del servidor" });
   }
 };
 
@@ -303,4 +326,5 @@ module.exports = {
   logout,
   checkAuth,
   changePassword,
+  validateResetToken,
 };

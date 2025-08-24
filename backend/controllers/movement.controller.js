@@ -3,60 +3,80 @@ const ExcelJS = require("exceljs");
 
 const userModel = require("../models/user.model");
 const movementModel = require("../models/movement.model");
-const movementTypes = require("../utils/movements.types");
-const e = require("express");
-
 const addMovement = async (req, res) => {
-  const token = req.cookies.jwt_token;
-  const {
-    movementDescription,
-    quantity,
-    movementCategory,
-    movementType,
-    movementDate,
-  } = req.body;
+  const { description, amount, category, type, date, time } = req.body;
+
+  if (!description || !amount || !category || !type) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing required fields" });
+  }
+
+  const session = await movementModel.startSession();
+
+  const executeTransaction = async () => {
+    session.startTransaction();
+    try {
+      const userID = req.userID;
+      const userData = await userModel.findById(userID).session(session);
+      if (!userData) throw new Error("User not found");
+
+      const userMovement = new movementModel({
+        userID: userData._id,
+        description,
+        amount,
+        category,
+        type,
+        date: date || new Date(),
+        time: time || new Date().toLocaleTimeString(),
+      });
+
+      await userMovement.save({ session });
+
+      if (type === "income") {
+        userData.balance += Math.abs(amount);
+      } else {
+        userData.balance -= Math.abs(amount);
+      }
+
+      await userData.save({ session });
+
+      await session.commitTransaction();
+      return { success: true };
+    } catch (error) {
+      await session.abortTransaction();
+      if (
+        error.hasOwnProperty("errorLabels") &&
+        error.errorLabels.includes("TransientTransactionError")
+      ) {
+        return executeTransaction();
+      } else {
+        throw error;
+      }
+    } finally {
+      session.endSession();
+    }
+  };
 
   try {
-    const dataDecoded = jwt.decode(token, process.env.JWT_SECRET);
-    const userID = dataDecoded.userId;
-    const userData = await userModel.findById(userID);
-
-    const userMovement = new movementModel({
-      userID: userData._id,
-      movementDescription,
-      quantity,
-      movementCategory,
-      movementType,
-      movementDate,
-    });
-    await userMovement.save();
-
-    movementType === movementTypes.INCOME
-      ? (userData.balance += quantity)
-      : (userData.balance -= quantity);
-    await userData.save();
+    await executeTransaction();
     res
       .status(200)
       .json({ success: true, message: "Movement added successfully!" });
   } catch (error) {
     console.log("error in addMovement ", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 const getAllMovements = async (req, res) => {
-  const token = req.cookies.jwt_token;
-
-  if (!token) {
-    return res.status(401).json({ success: false, message: "Invalid token" });
-  }
-
   try {
-    const dataDecoded = jwt.decode(token, process.env.JWT_SECRET);
-    const userID = dataDecoded.userId;
+    const userID = req.userID;
     const userData = await userModel.findById(userID);
+    console.log(userData);
 
-    const userMovements = await movementModel.find({ userID: userData._id });
+    const userMovements = await movementModel.find({ userID });
+
     res.status(200).json({ success: true, userMovements });
   } catch (error) {
     console.log("error in getAllMovements ", error);
@@ -66,7 +86,7 @@ const getAllMovements = async (req, res) => {
 
 const removeMovementByID = async (req, res) => {
   const movementId = req.params.id;
-
+  console.log(movementId);
   try {
     const movementData = await movementModel.findByIdAndDelete(movementId);
     if (!movementData) {
@@ -76,9 +96,9 @@ const removeMovementByID = async (req, res) => {
     }
 
     const userData = await userModel.findById(movementData.userID);
-    movementData.movementType === movementTypes.INCOME
-      ? (userData.balance -= movementData.quantity)
-      : (userData.balance += movementData.quantity);
+    movementData.type === "income"
+      ? (userData.balance -= movementData.amount)
+      : (userData.balance += movementData.amount);
 
     await userData.save();
 
@@ -92,13 +112,9 @@ const removeMovementByID = async (req, res) => {
 };
 
 const downloadMovements = async (req, res) => {
-  const token = req.cookies.jwt_token;
-  if (!token) {
-    return res.status(401).json({ success: false, message: "Invalid token" });
-  }
   try {
-    const dataDecoded = jwt.decode(token, process.env.JWT_SECRET);
-    const userData = await userModel.findById(dataDecoded.userId);
+    const userID = req.userID;
+    const userData = await userModel.findById(userID);
     const movements = await movementModel
       .find({ userID: userData._id })
       .sort({ movementDate: -1 });
@@ -155,9 +171,29 @@ const downloadMovements = async (req, res) => {
   }
 };
 
+const getCategories = async (req, res) => {
+  const summaryCategories = await movementModel.aggregate([
+    { $match: { type: "expense" } },
+
+    {
+      $group: {
+        _id: "$category",
+        totalExpenses: { $sum: "$amount" },
+        count: { $sum: 1 },
+        icon: { $first: "$icon" },
+      },
+    },
+  ]);
+
+  // console.log(summaryCategories);
+
+  return res.json(summaryCategories);
+};
+
 module.exports = {
   addMovement,
   getAllMovements,
   removeMovementByID,
   downloadMovements,
+  getCategories,
 };

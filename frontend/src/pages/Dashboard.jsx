@@ -3,16 +3,13 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   DollarSign,
-  Download,
   Menu
 } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { downloadMovements } from "../services/movementService";
+import useAuthStore from "../stores/authStore";
 
-// Datos de ejemplo
 const mockTransactions = [
   {
     id: 1,
@@ -58,25 +55,7 @@ const mockTransactions = [
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const handleDownloadMovements = async (e) => {
-    e.preventDefault();
-
-    try {
-      const blob = await downloadMovements();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "movimientos.xlsx";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success("Se ha descargado correctamente");
-    } catch {
-      toast.error("Error descargando los movimientos");
-    }
-  };
+  const user = useAuthStore((state) => state.user);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -108,7 +87,6 @@ export default function Dashboard() {
               </button>
               <h1 className="text-xl font-bold text-slate-100">Dashboard</h1>
             </div>
-
           </div>
         </header>
 
@@ -126,7 +104,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-slate-400 text-sm">Balance Total</p>
                   <h3 className="text-2xl font-bold text-slate-100">
-                    €2,296.01
+                    €{user?.balance.toFixed(2)}
                   </h3>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-emerald-500 bg-opacity-20 flex items-center justify-center">
@@ -230,7 +208,7 @@ export default function Dashboard() {
                   Transacciones recientes
                 </h2>
                 <Link
-                  href="/dashboard/transactions"
+                  to="/movements"
                   className="text-sm hover:underline text-emerald-400"
                 >
                   Ver todas
@@ -270,22 +248,6 @@ export default function Dashboard() {
                 ))}
               </div>
             </motion.div>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="fixed bottom-6 right-6 flex flex-col space-y-4">
-            {/* <button className="w-12 h-12 rounded-full bg-slate-800 backdrop-blur-sm border border-slate-700 flex items-center justify-center hover:bg-slate-700 transition-colors text-slate-100">
-              <Calendar size={20} />
-            </button> */}
-            <button
-              onClick={handleDownloadMovements}
-              className="w-12 h-12 rounded-full bg-slate-800 backdrop-blur-sm border border-slate-700 flex items-center justify-center hover:bg-slate-700 transition-colors text-slate-100"
-            >
-              <Download size={20} />
-            </button>
-            {/* <button className="w-14 h-14 rounded-full gradient-primary flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity">
-              <Plus size={24} className="text-white" />
-            </button> */}
           </div>
         </main>
       </div>

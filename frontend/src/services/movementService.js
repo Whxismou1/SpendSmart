@@ -24,7 +24,7 @@ export const downloadMovements = async () => {
 
 export const getAllMovements = async () => {
   try {
-    const response = await fetch(BASE_URL + "/getAllMovements", {
+    const response = await fetch(BASE_URL + "/all", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -66,27 +66,15 @@ export const deleteMovementByID = async (id) => {
   }
 };
 
-export const addMovement = async (
-  movementDescription,
-  quantity,
-  movementCategory,
-  movementType,
-  movementDate
-) => {
+export const addMovement = async (newMovement) => {
   try {
-    const response = await fetch(BASE_URL + "/addMovement", {
+    const response = await fetch(BASE_URL + "/add", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({
-        movementDescription,
-        quantity,
-        movementCategory,
-        movementType,
-        movementDate,
-      }),
+      body: JSON.stringify(newMovement),
     });
 
     const data = await response.json();
@@ -98,5 +86,22 @@ export const addMovement = async (
   } catch (error) {
     console.error("Error during getAllMovements:", error.message);
     throw error;
+  }
+};
+
+export const getCategoriesData = async () => {
+  try {
+    const res = await fetch(BASE_URL + "/categories", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const dat = await res.json();
+
+    console.log(dat);
+
+    return dat;
+  } catch (error) {
+    console.log(error);
   }
 };

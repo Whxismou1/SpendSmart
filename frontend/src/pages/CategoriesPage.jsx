@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Edit, Menu, Search, Tag, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
+import { getCategoriesData } from "../services/movementService";
 
-// Mock data para categorías
 const mockCategories = [
   {
     id: 1,
@@ -58,13 +58,24 @@ const mockCategories = [
 export default function CategoriesPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    async function fetchCategoriesSummary() {
+      const data = await getCategoriesData();
+      setCategories(data);
+      console.log(data);
+    }
+
+    fetchCategoriesSummary();
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const filteredCategories = mockCategories.filter((category) =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter((category) =>
+    category._id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -130,10 +141,10 @@ export default function CategoriesPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-100">
-                        {category.name}
+                        {category._id}
                       </h3>
                       <p className="text-sm text-slate-400">
-                        Presupuesto: €{category.budget}
+                        {/* Presupuesto: €{category.budget} */}
                       </p>
                     </div>
                   </div>
@@ -151,7 +162,7 @@ export default function CategoriesPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Gastado</span>
                     <span className="text-slate-100 font-medium">
-                      €{category.spent.toFixed(2)}
+                      €{category.totalExpenses.toFixed(2)}
                     </span>
                   </div>
                   <div className="w-full bg-slate-700 rounded-full h-2">
@@ -179,8 +190,15 @@ export default function CategoriesPage() {
               </motion.div>
             ))}
           </div>
-
           {filteredCategories.length === 0 && (
+            <div className="text-center py-12">
+              <Tag size={48} className="mx-auto text-slate-400 mb-4" />
+              <h3 className="text-xl font-semibold text-slate-100 mb-2">
+                Aún no tienes categorías
+              </h3>
+            </div>
+          )}
+          {filteredCategories.length === 0 && searchTerm.length > 0 && (
             <div className="text-center py-12">
               <Tag size={48} className="mx-auto text-slate-400 mb-4" />
               <h3 className="text-xl font-semibold text-slate-100 mb-2">

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, TrendingUp } from "lucide-react";
+import { ArrowLeft, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { forgotPassword } from "../services/authService";
@@ -102,9 +102,9 @@ function ForgotPasswordPage() {
               className="text-center"
             >
               <div className="flex justify-center mb-6">
-                <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                {/* <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
                   <Mail className="w-8 h-8 text-emerald-400" />
-                </div>
+                </div> */}
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">
                 ¡Correo enviado!

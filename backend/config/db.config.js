@@ -1,12 +1,13 @@
-const mongoose = require('mongoose');
-require('dotenv').config();
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 const createConnection = async () => {
-  const dbUri = process.env.NODE_ENV === 'production' 
-      ? process.env.MONGODB_URI 
-      : process.env.MONGODB_URI_TEST;  
+  const dbUri =
+    process.env.NODE_ENV === "production"
+      ? process.env.MONGODB_URI
+      : process.env.MONGODB_URI_TEST;
 
-
+  console.log(dbUri);
   mongoose.connection.on("error", (e) => {
     console.error("[Mongoose Error] ", e);
   });
@@ -15,13 +16,13 @@ const createConnection = async () => {
     console.log("[Mongoose] Conexión con la base de datos inicializada");
   });
 
-  mongoose.connection.on("disconnected", () =>{
+  mongoose.connection.on("disconnected", () => {
     console.log("[Mongoose] Desconectado de la base de datos");
   });
 
   return mongoose.connect(dbUri);
-}
+};
 
 module.exports = {
-  createConnection
+  createConnection,
 };

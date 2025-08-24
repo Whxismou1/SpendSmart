@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
-const movementTypes = require("../utils/movements.types");
+const {
+  movementCategories,
+  movementTypes,
+  categoryIcons,
+} = require("../utils/movements.enums");
+
 const movementSchema = new mongoose.Schema(
   {
     userID: {
@@ -7,30 +12,45 @@ const movementSchema = new mongoose.Schema(
       ref: "UserModel",
       required: true,
     },
-    movementDescription: {
+    description: {
       type: String,
       required: true,
     },
-    quantity: {
+    icon:{
+      type: String
+    },
+    amount: {
       type: Number,
       required: true,
     },
-    movementCategory: {
-      type: String,
-      required: true,
-    },
-    movementType: {
-      type: String,
-      enum: Object.values(movementTypes),
-      required: true,
-    },
-    movementDate: {
+    date: {
       type: Date,
       default: Date.now,
+      required: true,
+    },
+    time: {
+      type: String,
+    },
+    category: {
+      type: String,
+      enum: movementCategories,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: movementTypes,
+      required: true,
     },
   },
   { timestamps: true }
 );
+
+movementSchema.pre("save", function (next) {
+  if (!this.icon) {
+    this.icon = categoryIcons[this.category] || "💰";
+  }
+  next();
+});
 
 const movementModel = mongoose.model("MovementSchema", movementSchema);
 

@@ -168,3 +168,26 @@ export const resetPassword = async (password, resetToken) => {
     throw error;
   }
 };
+
+export const validateResetToken = async (token) => {
+  try {
+    const res = await fetch(BASE_URL + "/reset-password/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to validate reset token");
+    }
+
+    return data.valid; 
+  } catch  {
+    // console.log("Error during validate reset token: ", error.message);
+    return false;
+  }
+};

@@ -1,160 +1,146 @@
-import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 import {
-  Plus,
-  Filter,
-  Download,
-  Search,
-  Calendar,
-  ArrowUpRight,
   ArrowDownRight,
+  ArrowUpRight,
+  Calendar,
+  Download,
   Edit,
-  Trash2,
   Eye,
   Menu,
-} from "lucide-react"
-import Sidebar from "../components/Sidebar"
-// Mock data para movimientos
-const mockTransactions = [
-  {
-    id: 1,
-    description: "Supermercado Mercadona",
-    amount: -85.2,
-    date: "2024-01-15",
-    time: "14:30",
-    category: "Alimentación",
-    subcategory: "Compra semanal",
-    icon: "🛒",
-    type: "expense",
-    account: "Cuenta Corriente",
-    status: "completed",
-  },
-  {
-    id: 2,
-    description: "Salario Enero",
-    amount: 2500.0,
-    date: "2024-01-01",
-    time: "09:00",
-    category: "Ingresos",
-    subcategory: "Salario",
-    icon: "💰",
-    type: "income",
-    account: "Cuenta Corriente",
-    status: "completed",
-  },
-  {
-    id: 3,
-    description: "Netflix Suscripción",
-    amount: -12.99,
-    date: "2024-01-10",
-    time: "10:15",
-    category: "Entretenimiento",
-    subcategory: "Streaming",
-    icon: "🎬",
-    type: "expense",
-    account: "Tarjeta de Crédito",
-    status: "completed",
-  },
-  {
-    id: 4,
-    description: "Restaurante La Tasca",
-    amount: -45.8,
-    date: "2024-01-08",
-    time: "20:45",
-    category: "Alimentación",
-    subcategory: "Restaurantes",
-    icon: "🍔",
-    type: "expense",
-    account: "Tarjeta de Débito",
-    status: "completed",
-  },
-  {
-    id: 5,
-    description: "Gasolina Shell",
-    amount: -60.0,
-    date: "2024-01-05",
-    time: "08:30",
-    category: "Transporte",
-    subcategory: "Combustible",
-    icon: "⛽",
-    type: "expense",
-    account: "Tarjeta de Crédito",
-    status: "completed",
-  },
-  {
-    id: 6,
-    description: "Transferencia de María",
-    amount: 150.0,
-    date: "2024-01-12",
-    time: "16:20",
-    category: "Transferencias",
-    subcategory: "Recibida",
-    icon: "💸",
-    type: "income",
-    account: "Cuenta Corriente",
-    status: "completed",
-  },
-  {
-    id: 7,
-    description: "Farmacia San Pablo",
-    amount: -23.45,
-    date: "2024-01-14",
-    time: "11:00",
-    category: "Salud",
-    subcategory: "Medicamentos",
-    icon: "💊",
-    type: "expense",
-    account: "Cuenta Corriente",
-    status: "completed",
-  },
-  {
-    id: 8,
-    description: "Spotify Premium",
-    amount: -9.99,
-    date: "2024-01-11",
-    time: "12:00",
-    category: "Entretenimiento",
-    subcategory: "Música",
-    icon: "🎵",
-    type: "expense",
-    account: "Tarjeta de Crédito",
-    status: "pending",
-  },
-]
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import AddMovementModal from "../components/AddMovementModal";
+import Sidebar from "../components/Sidebar";
+import {
+  deleteMovementByID,
+  downloadMovements,
+  getAllMovements,
+} from "../services/movementService";
+import useAuthStore from "../stores/authStore";
 
 export default function MovementsPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedType, setSelectedType] = useState("all")
-  const [selectedPeriod, setSelectedPeriod] = useState("all")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
+  const [transactions, setTransactions] = useState([]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    async function fetchMovements() {
+      const res = await getAllMovements();
+      const formattedTransactions = res.map((m) => ({
+        id: m._id,
+        description: m.description,
+        amount: m.amount,
+        date: new Date(m.date).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+        time: m.time,
+        category: m.category,
+        icon: m.icon,
+        type: m.type,
+      }));
+      setTransactions(formattedTransactions);
+    }
+    fetchMovements();
+  }, []);
+
+  const handleDeleteMovement = async (movement) => {
+    try {
+      console.log(movement);
+      await deleteMovementByID(movement.id);
+      setTransactions((prev) => prev.filter((t) => t.id !== movement.id));
+      toast.success("Movimiento eliminado correctamente");
+    } catch {
+      toast.error("No se ha podido eliminar el movimiento");
+    }
+  };
+
+  const handleDownloadMovements = async (e) => {
+    e.preventDefault();
+
+    if (transactions.length === 0) {
+      toast("No hay movimientos!", {
+        icon: "⚠️",
+      });
+      return;
+    }
+
+    try {
+      const blob = await downloadMovements();
+      console.log(blob);
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "movimientos.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Se ha descargado correctamente");
+    } catch {
+      toast.error("Error descargando los movimientos.");
+    }
+  };
+
+  const handleAddMovement = (movement) => {
+    setTransactions((prev) => [movement, ...prev]);
+  };
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
-  const categories = ["all", "Alimentación", "Transporte", "Entretenimiento", "Salud", "Ingresos", "Transferencias"]
-//   const types = ["all", "income", "expense"]
+  const categories = [
+    "all",
+    "Alimentación",
+    "Transporte",
+    "Entretenimiento",
+    "Salud",
+    "Ingresos",
+    "Transferencias",
+  ];
+  // const types = ["all", "income", "expense"];
 
-  const filteredTransactions = mockTransactions.filter((transaction) => {
+  const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
-      transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || transaction.category === selectedCategory
-    const matchesType = selectedType === "all" || transaction.type === selectedType
-    return matchesSearch && matchesCategory && matchesType
-  })
+      transaction.description
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || transaction.category === selectedCategory;
+    const matchesType =
+      selectedType === "all" || transaction.type === selectedType;
+    return matchesSearch && matchesCategory && matchesType;
+  });
 
-  const totalIncome = filteredTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0)
+  const totalIncome = filteredTransactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = filteredTransactions
     .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100">
       {/* Sidebar para móvil */}
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden ${isSidebarOpen ? "block" : "hidden"}`}
+        className={`fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden ${
+          isSidebarOpen ? "block" : "hidden"
+        }`}
         onClick={toggleSidebar}
       />
 
@@ -166,7 +152,10 @@ export default function MovementsPage() {
         <header className="bg-slate-800 border-b border-slate-700 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <button className="lg:hidden text-slate-400 hover:text-slate-100" onClick={toggleSidebar}>
+              <button
+                className="lg:hidden text-slate-400 hover:text-slate-100"
+                onClick={toggleSidebar}
+              >
                 <Menu size={24} />
               </button>
               <h1 className="text-xl font-bold text-slate-100">Movimientos</h1>
@@ -186,20 +175,31 @@ export default function MovementsPage() {
                   <option value="year">Este año</option>
                 </select>
 
-                <button className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition-colors flex items-center space-x-2">
+                {/* <button className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition-colors flex items-center space-x-2">
                   <Filter size={16} className="text-slate-400" />
                   <span className="text-slate-100 text-sm">Filtros</span>
-                </button>
+                </button> */}
 
-                <button className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition-colors flex items-center space-x-2">
+                <button
+                  onClick={handleDownloadMovements}
+                  className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition-colors flex items-center space-x-2"
+                >
                   <Download size={16} className="text-slate-400" />
                   <span className="text-slate-100 text-sm">Exportar</span>
                 </button>
 
-                <button className="px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity flex items-center space-x-2">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity flex items-center space-x-2"
+                >
                   <Plus size={16} />
                   <span>Nuevo Movimiento</span>
                 </button>
+                <AddMovementModal
+                  isOpen={isModalOpen}
+                  onClose={() => setIsModalOpen(false)}
+                  onAdd={handleAddMovement}
+                />
               </div>
             </div>
           </div>
@@ -218,7 +218,9 @@ export default function MovementsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-slate-400 text-sm">Total Ingresos</p>
-                  <h3 className="text-2xl font-bold text-emerald-400">+€{totalIncome.toFixed(2)}</h3>
+                  <h3 className="text-2xl font-bold text-emerald-400">
+                    +€{totalIncome.toFixed(2)}
+                  </h3>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-emerald-500 bg-opacity-20 flex items-center justify-center">
                   <ArrowUpRight size={24} className="text-emerald-400" />
@@ -235,7 +237,9 @@ export default function MovementsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-slate-400 text-sm">Total Gastos</p>
-                  <h3 className="text-2xl font-bold text-red-400">-€{totalExpenses.toFixed(2)}</h3>
+                  <h3 className="text-2xl font-bold text-red-400">
+                    -€{totalExpenses.toFixed(2)}
+                  </h3>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-red-500 bg-opacity-20 flex items-center justify-center">
                   <ArrowDownRight size={24} className="text-red-400" />
@@ -254,10 +258,10 @@ export default function MovementsPage() {
                   <p className="text-slate-400 text-sm">Balance</p>
                   <h3
                     className={`text-2xl font-bold ${
-                      totalIncome - totalExpenses >= 0 ? "text-emerald-400" : "text-red-400"
+                      user?.balance >= 0 ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
-                    €{(totalIncome - totalExpenses).toFixed(2)}
+                    €{user?.balance.toFixed(2)}
                   </h3>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center">
@@ -284,7 +288,10 @@ export default function MovementsPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-100 placeholder-slate-400"
                   />
-                  <Search size={18} className="absolute left-3 top-2.5 text-slate-400" />
+                  <Search
+                    size={18}
+                    className="absolute left-3 top-2.5 text-slate-400"
+                  />
                 </div>
               </div>
 
@@ -322,13 +329,15 @@ export default function MovementsPage() {
             className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden"
           >
             <div className="p-4 border-b border-slate-700">
-              <h2 className="text-lg font-semibold text-slate-100">Movimientos ({filteredTransactions.length})</h2>
+              <h2 className="text-lg font-semibold text-slate-100">
+                Movimientos ({filteredTransactions.length})
+              </h2>
             </div>
 
             <div className="divide-y divide-slate-700">
               {filteredTransactions.map((transaction, index) => (
                 <motion.div
-                  key={transaction.id}
+                  key={index}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -342,7 +351,9 @@ export default function MovementsPage() {
 
                       <div className="flex-1">
                         <div className="flex items-center space-x-2">
-                          <h3 className="font-medium text-slate-100">{transaction.description}</h3>
+                          <h3 className="font-medium text-slate-100">
+                            {transaction.description}
+                          </h3>
                           {transaction.status === "pending" && (
                             <span className="px-2 py-1 bg-yellow-500 bg-opacity-20 text-yellow-400 text-xs rounded-full">
                               Pendiente
@@ -351,10 +362,6 @@ export default function MovementsPage() {
                         </div>
                         <div className="flex items-center space-x-4 text-sm text-slate-400 mt-1">
                           <span>{transaction.category}</span>
-                          <span>•</span>
-                          <span>{transaction.subcategory}</span>
-                          <span>•</span>
-                          <span>{transaction.account}</span>
                         </div>
                         <div className="text-xs text-slate-500 mt-1">
                           {transaction.date} • {transaction.time}
@@ -366,10 +373,13 @@ export default function MovementsPage() {
                       <div className="text-right">
                         <p
                           className={`text-lg font-semibold ${
-                            transaction.type === "income" ? "text-emerald-400" : "text-red-400"
+                            transaction.type === "income"
+                              ? "text-emerald-400"
+                              : "text-red-400"
                           }`}
                         >
-                          {transaction.type === "income" ? "+" : ""}€{Math.abs(transaction.amount).toFixed(2)}
+                          {transaction.type === "income" ? "+" : ""}€
+                          {Math.abs(transaction.amount).toFixed(2)}
                         </p>
                       </div>
 
@@ -380,7 +390,10 @@ export default function MovementsPage() {
                         <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
                           <Edit size={16} className="text-slate-400" />
                         </button>
-                        <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                        <button
+                          onClick={() => handleDeleteMovement(transaction)}
+                          className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                        >
                           <Trash2 size={16} className="text-red-400" />
                         </button>
                       </div>
@@ -395,13 +408,17 @@ export default function MovementsPage() {
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700 flex items-center justify-center">
                   <Search size={24} className="text-slate-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-2">No se encontraron movimientos</h3>
-                <p className="text-slate-400">Intenta ajustar los filtros o el término de búsqueda</p>
+                <h3 className="text-lg font-semibold text-slate-100 mb-2">
+                  No se encontraron movimientos
+                </h3>
+                <p className="text-slate-400">
+                  Intenta ajustar los filtros o el término de búsqueda
+                </p>
               </div>
             )}
           </motion.div>
         </main>
       </div>
     </div>
-  )
+  );
 }

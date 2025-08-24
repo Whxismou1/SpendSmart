@@ -11,7 +11,7 @@ import "./styles/App.css";
 import { Toaster } from "react-hot-toast";
 import AddMovementPage from "./pages/AddMovementPage";
 import { NotFound } from "./pages/NotFound";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CategoriesPage from "./pages/CategoriesPage";
 import BudgetPage from "./pages/BudgetPage";
@@ -27,7 +27,6 @@ function App() {
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -37,7 +36,7 @@ function App() {
           <Route path="/market" element={<MarketPage />} />
           <Route path="/movements" element={<MovementsPage />} />
 
-
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
