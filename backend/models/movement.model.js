@@ -16,9 +16,6 @@ const movementSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    icon:{
-      type: String
-    },
     amount: {
       type: Number,
       required: true,
@@ -28,17 +25,14 @@ const movementSchema = new mongoose.Schema(
       default: Date.now,
       required: true,
     },
-    time: {
-      type: String,
-    },
     category: {
-      type: String,
-      enum: movementCategories,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
     },
     type: {
       type: String,
-      enum: movementTypes,
+      enum: ["income", "expense"],
       required: true,
     },
   },
@@ -52,6 +46,5 @@ movementSchema.pre("save", function (next) {
   next();
 });
 
-const movementModel = mongoose.model("MovementSchema", movementSchema);
-
-module.exports = movementModel;
+const MovementModel = mongoose.model("Movement", movementSchema);
+module.exports = MovementModel;

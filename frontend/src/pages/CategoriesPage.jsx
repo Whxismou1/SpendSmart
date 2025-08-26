@@ -2,58 +2,58 @@ import { motion } from "framer-motion";
 import { Edit, Menu, Search, Tag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { getCategoriesData } from "../services/movementService";
+import { getCategoriesData } from "../services/categoriesService";
 
-const mockCategories = [
-  {
-    id: 1,
-    name: "Alimentación",
-    color: "#ef4444",
-    icon: "🍔",
-    budget: 400,
-    spent: 285.5,
-  },
-  {
-    id: 2,
-    name: "Transporte",
-    color: "#3b82f6",
-    icon: "🚗",
-    budget: 200,
-    spent: 150.0,
-  },
-  {
-    id: 3,
-    name: "Entretenimiento",
-    color: "#8b5cf6",
-    icon: "🎬",
-    budget: 100,
-    spent: 75.99,
-  },
-  {
-    id: 4,
-    name: "Salud",
-    color: "#10b981",
-    icon: "🏥",
-    budget: 150,
-    spent: 45.0,
-  },
-  {
-    id: 5,
-    name: "Educación",
-    color: "#f59e0b",
-    icon: "📚",
-    budget: 300,
-    spent: 120.0,
-  },
-  {
-    id: 6,
-    name: "Ropa",
-    color: "#ec4899",
-    icon: "👕",
-    budget: 200,
-    spent: 89.99,
-  },
-];
+// const mockCategories = [
+//   {
+//     id: 1,
+//     name: "Alimentación",
+//     color: "#ef4444",
+//     icon: "🍔",
+//     budget: 400,
+//     spent: 285.5,
+//   },
+//   {
+//     id: 2,
+//     name: "Transporte",
+//     color: "#3b82f6",
+//     icon: "🚗",
+//     budget: 200,
+//     spent: 150.0,
+//   },
+//   {
+//     id: 3,
+//     name: "Entretenimiento",
+//     color: "#8b5cf6",
+//     icon: "🎬",
+//     budget: 100,
+//     spent: 75.99,
+//   },
+//   {
+//     id: 4,
+//     name: "Salud",
+//     color: "#10b981",
+//     icon: "🏥",
+//     budget: 150,
+//     spent: 45.0,
+//   },
+//   {
+//     id: 5,
+//     name: "Educación",
+//     color: "#f59e0b",
+//     icon: "📚",
+//     budget: 300,
+//     spent: 120.0,
+//   },
+//   {
+//     id: 6,
+//     name: "Ropa",
+//     color: "#ec4899",
+//     icon: "👕",
+//     budget: 200,
+//     spent: 89.99,
+//   },
+// ];
 
 export default function CategoriesPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -75,7 +75,7 @@ export default function CategoriesPage() {
   };
 
   const filteredCategories = categories.filter((category) =>
-    category._id.toLowerCase().includes(searchTerm.toLowerCase())
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -131,6 +131,7 @@ export default function CategoriesPage() {
                 transition={{ duration: 0.3, delay: index * 0.1 }}
                 className="bg-slate-800 rounded-xl p-6 border border-slate-700 hover:bg-slate-750 transition-all"
               >
+                {/* Header categoría */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div
@@ -141,55 +142,78 @@ export default function CategoriesPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-100">
-                        {category._id}
+                        {category.name}
                       </h3>
-                      <p className="text-sm text-slate-400">
-                        {/* Presupuesto: €{category.budget} */}
-                      </p>
+                      {category.budget > 0 ? (
+                        <p className="text-sm text-slate-400">
+                          Presupuesto: €{category.budget}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-slate-400">
+                          No hay presupuesto asignado
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
-                      <Edit size={16} className="text-slate-400" />
-                    </button>
-                    <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
-                      <Trash2 size={16} className="text-red-400" />
-                    </button>
-                  </div>
+
+                  {/* Botones solo si no es por defecto */}
+                  {!category.isDefault && (
+                    <div className="flex space-x-2">
+                      <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                        <Edit size={16} className="text-slate-400" />
+                      </button>
+                      <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                        <Trash2 size={16} className="text-red-400" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
+                {/* Gastos y barra */}
                 <div className="space-y-2">
+                  {/* Mostrar siempre lo gastado */}
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Gastado</span>
                     <span className="text-slate-100 font-medium">
-                      €{category.totalExpenses.toFixed(2)}
+                      €{category.spent.toFixed(2)}
                     </span>
                   </div>
-                  <div className="w-full bg-slate-700 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full transition-all duration-300"
-                      style={{
-                        backgroundColor: category.color,
-                        width: `${Math.min(
-                          (category.spent / category.budget) * 100,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">
-                      {((category.spent / category.budget) * 100).toFixed(1)}%
-                      usado
-                    </span>
-                    <span className="text-slate-400">
-                      €{(category.budget - category.spent).toFixed(2)} restante
-                    </span>
-                  </div>
+
+                  {/* Mostrar barra y porcentaje solo si hay presupuesto */}
+                  {category.budget > 0 && (
+                    <>
+                      <div className="w-full bg-slate-700 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full transition-all duration-300"
+                          style={{
+                            backgroundColor: category.color,
+                            width: `${Math.min(
+                              (category.spent / category.budget) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">
+                          {((category.spent / category.budget) * 100).toFixed(
+                            1
+                          )}
+                          % usado
+                        </span>
+                        <span className="text-slate-400">
+                          €{(category.budget - category.spent).toFixed(2)}{" "}
+                          restante
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </motion.div>
             ))}
           </div>
+
+          {/* Mensajes si no hay categorías */}
           {filteredCategories.length === 0 && (
             <div className="text-center py-12">
               <Tag size={48} className="mx-auto text-slate-400 mb-4" />

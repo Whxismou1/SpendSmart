@@ -33,11 +33,12 @@ export const getAllMovements = async () => {
     });
 
     const data = await response.json();
+    
     if (!response.ok) {
       throw new Error(data.message || "Failed to fetch movements");
     }
 
-    return data.userMovements;
+    return data;
   } catch (error) {
     console.error("Error during getAllMovements:", error.message);
     throw error;
@@ -89,19 +90,4 @@ export const addMovement = async (newMovement) => {
   }
 };
 
-export const getCategoriesData = async () => {
-  try {
-    const res = await fetch(BASE_URL + "/categories", {
-      method: "GET",
-      credentials: "include",
-    });
 
-    const dat = await res.json();
-
-    console.log(dat);
-
-    return dat;
-  } catch (error) {
-    console.log(error);
-  }
-};

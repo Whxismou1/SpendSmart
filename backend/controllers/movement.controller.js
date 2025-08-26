@@ -3,68 +3,47 @@ const ExcelJS = require("exceljs");
 
 const userModel = require("../models/user.model");
 const movementModel = require("../models/movement.model");
+const CategoryModel = require("../models/category.model");
 const addMovement = async (req, res) => {
-  const { description, amount, category, type, date, time } = req.body;
+  const { description, amount, categoryID, type, date, time } = req.body;
+  const userID = req.userID;
 
-  if (!description || !amount || !category || !type) {
+  if (!description || !amount || !categoryID || !type) {
     return res
       .status(400)
       .json({ success: false, message: "Missing required fields" });
   }
-
-  const session = await movementModel.startSession();
-
-  const executeTransaction = async () => {
-    session.startTransaction();
-    try {
-      const userID = req.userID;
-      const userData = await userModel.findById(userID).session(session);
-      if (!userData) throw new Error("User not found");
-
-      const userMovement = new movementModel({
-        userID: userData._id,
-        description,
-        amount,
-        category,
-        type,
-        date: date || new Date(),
-        time: time || new Date().toLocaleTimeString(),
-      });
-
-      await userMovement.save({ session });
-
-      if (type === "income") {
-        userData.balance += Math.abs(amount);
-      } else {
-        userData.balance -= Math.abs(amount);
-      }
-
-      await userData.save({ session });
-
-      await session.commitTransaction();
-      return { success: true };
-    } catch (error) {
-      await session.abortTransaction();
-      if (
-        error.hasOwnProperty("errorLabels") &&
-        error.errorLabels.includes("TransientTransactionError")
-      ) {
-        return executeTransaction();
-      } else {
-        throw error;
-      }
-    } finally {
-      session.endSession();
-    }
-  };
-
   try {
-    await executeTransaction();
-    res
-      .status(200)
-      .json({ success: true, message: "Movement added successfully!" });
+    const category = await CategoryModel.find({
+      _id: categoryID,
+      $or: [{ isDefault: true }, { userID }],
+    });
+
+    if (!category) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found" });
+    }
+
+    const movement = new movementModel({
+      userID,
+      description,
+      amount,
+      category: categoryID,
+      type,
+      date: date || new Date(),
+      time: time || new Date().toLocaleTimeString(),
+      icon: category.icon,
+    });
+
+    await movement.save();
+    res.status(201).json({
+      success: true,
+      message: "Movement added successfully!",
+      movement,
+    });
   } catch (error) {
-    console.log("error in addMovement ", error);
+    console.error("Error in addMovement:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -73,11 +52,35 @@ const getAllMovements = async (req, res) => {
   try {
     const userID = req.userID;
     const userData = await userModel.findById(userID);
-    console.log(userData);
 
-    const userMovements = await movementModel.find({ userID });
+    const userMovements = await movementModel
+      .find({ userID })
+      .populate("category", "name icon color")
+      .sort({ date: -1 })
+      .lean();
+    const formattedMovements = userMovements.map((m) => ({
+      id: m._id,
+      description: m.description,
+      amount: m.amount,
+      date: new Date(m.date).toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
+      time: m.time,
+      type: m.type,
+      category: m.category?.name || "Otro",
+      icon: m.category?.icon || "💰",
+      color: m.category?.color || "#9ca3af",
+    }));
 
-    res.status(200).json({ success: true, userMovements });
+    const categories = await CategoryModel.find({
+      $or: [{ isDefault: true }, { userID }],
+    }).lean();
+
+    res
+      .status(200)
+      .json({ success: true, userMovements: formattedMovements, categories });
   } catch (error) {
     console.log("error in getAllMovements ", error);
     res.status(500).json({ success: false, message: "Server error" + error });
@@ -171,29 +174,9 @@ const downloadMovements = async (req, res) => {
   }
 };
 
-const getCategories = async (req, res) => {
-  const summaryCategories = await movementModel.aggregate([
-    { $match: { type: "expense" } },
-
-    {
-      $group: {
-        _id: "$category",
-        totalExpenses: { $sum: "$amount" },
-        count: { $sum: 1 },
-        icon: { $first: "$icon" },
-      },
-    },
-  ]);
-
-  // console.log(summaryCategories);
-
-  return res.json(summaryCategories);
-};
-
 module.exports = {
   addMovement,
   getAllMovements,
   removeMovementByID,
   downloadMovements,
-  getCategories,
 };

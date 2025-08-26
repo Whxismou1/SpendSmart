@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const authRouter = require("./routes/auth.route");
 const movementRouter = require("./routes/movement.route");
+const categoriesRouter = require("./routes/categories.route")
 const dbConfig = require("./config/db.config");
 const userRouter = require("./routes/user.route");
 
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/movements", movementRouter);
+app.use("/api/v1/categories", categoriesRouter);
 app.use("/api/v1/users", userRouter);
 
 const server = app.listen(PORT, () => {

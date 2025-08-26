@@ -8,7 +8,7 @@ import { changePassword } from "../services/authService";
 import toast from "react-hot-toast";
 
 export default function ProfilePage() {
-  const user = useAuthStore((state) => state.user);
+  const { user, setUser } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -56,6 +56,13 @@ export default function ProfilePage() {
 
       const response = await changeProfilePicture(formData);
       console.log("Imagen subida con éxito:", response);
+      setUser({
+        ...user,
+        profilePicture:
+          response.profilePicture || response.user?.profilePicture,
+      });
+
+      toast.success("Foto de perfil actualizada");
     } catch (error) {
       toast.error("Error subiendo la imagen");
       console.log(error);
@@ -295,43 +302,6 @@ export default function ProfilePage() {
               </form>
             </motion.div>
           </div>
-
-          {/* Configuraciones */}
-          {/* <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="bg-slate-800 backdrop-blur-sm rounded-xl p-6 border border-slate-700 mt-6"
-          >
-            <div className="flex items-center space-x-2 mb-6">
-              <Settings size={20} className="text-emerald-400" />
-              <h3 className="text-xl font-bold text-slate-100">
-                Configuraciones
-              </h3>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Bell size={20} className="text-slate-400" />
-                  <div>
-                    <p className="font-medium text-slate-100">Notificaciones</p>
-                    <p className="text-sm text-slate-400">
-                      Recibir alertas de gastos y recordatorios
-                    </p>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    defaultChecked
-                  />
-                  <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                </label>
-              </div>
-            </div>
-          </motion.div> */}
         </main>
       </div>
     </div>

@@ -18,13 +18,17 @@ const useAuthStore = create((set) => ({
       if (res.ok) {
         set({ user: data.user, isLoading: false, error: null });
       } else {
-        set({ user: null, isLoading: false, error: data.message || "Not authenticated" });
+        set({
+          user: null,
+          isLoading: false,
+          error: data.message || "Not authenticated",
+        });
       }
-    } catch  {
+    } catch {
       set({ user: null, isLoading: false, error: "Error de conexión" });
     }
   },
-
+  setUser: (user) => set({ user }),
   loginSuccess: (user) => set({ user, isLoading: false, error: null }),
 
   logout: async () => {

@@ -1,14 +1,9 @@
 import { motion } from "framer-motion";
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  DollarSign,
-  Menu
-} from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, DollarSign, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import useAuthStore from "../stores/authStore";
+// import useAuthStore from "../stores/authStore";
 
 const mockTransactions = [
   {
@@ -55,7 +50,7 @@ const mockTransactions = [
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const user = useAuthStore((state) => state.user);
+  // const user = useAuthStore((state) => state.user);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -103,9 +98,7 @@ export default function Dashboard() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-slate-400 text-sm">Balance Total</p>
-                  <h3 className="text-2xl font-bold text-slate-100">
-                    €{user?.balance.toFixed(2)}
-                  </h3>
+                  <h3 className="text-2xl font-bold text-slate-100">€0</h3>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-emerald-500 bg-opacity-20 flex items-center justify-center">
                   <DollarSign size={20} className="text-emerald-400" />

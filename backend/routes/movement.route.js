@@ -17,11 +17,4 @@ movementRouter.post(
   authMiddleware,
   movementController.downloadMovements
 );
-
-movementRouter.get(
-  "/categories",
-  authMiddleware,
-  movementController.getCategories
-);
-
 module.exports = movementRouter;

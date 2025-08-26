@@ -20,7 +20,7 @@ import {
   downloadMovements,
   getAllMovements,
 } from "../services/movementService";
-import useAuthStore from "../stores/authStore";
+// import useAuthStore from "../stores/authStore";
 
 export default function MovementsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,29 +29,18 @@ export default function MovementsPage() {
   const [selectedType, setSelectedType] = useState("all");
   const [selectedPeriod, setSelectedPeriod] = useState("all");
   const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const user = useAuthStore((state) => state.user);
+  // const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     async function fetchMovements() {
       const res = await getAllMovements();
-      const formattedTransactions = res.map((m) => ({
-        id: m._id,
-        description: m.description,
-        amount: m.amount,
-        date: new Date(m.date).toLocaleDateString("es-ES", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }),
-        time: m.time,
-        category: m.category,
-        icon: m.icon,
-        type: m.type,
-      }));
-      setTransactions(formattedTransactions);
+      console.log(res);
+      setTransactions(res.userMovements);
+      setCategories(res.categories);
     }
     fetchMovements();
   }, []);
@@ -103,15 +92,15 @@ export default function MovementsPage() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const categories = [
-    "all",
-    "Alimentación",
-    "Transporte",
-    "Entretenimiento",
-    "Salud",
-    "Ingresos",
-    "Transferencias",
-  ];
+  // const categories = [
+  //   "all",
+  //   "Alimentación",
+  //   "Transporte",
+  //   "Entretenimiento",
+  //   "Salud",
+  //   "Ingresos",
+  //   "Transferencias",
+  // ];
   // const types = ["all", "income", "expense"];
 
   const filteredTransactions = transactions.filter((transaction) => {
@@ -174,11 +163,6 @@ export default function MovementsPage() {
                   <option value="month">Este mes</option>
                   <option value="year">Este año</option>
                 </select>
-
-                {/* <button className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg hover:bg-slate-600 transition-colors flex items-center space-x-2">
-                  <Filter size={16} className="text-slate-400" />
-                  <span className="text-slate-100 text-sm">Filtros</span>
-                </button> */}
 
                 <button
                   onClick={handleDownloadMovements}
@@ -257,11 +241,11 @@ export default function MovementsPage() {
                 <div>
                   <p className="text-slate-400 text-sm">Balance</p>
                   <h3
-                    className={`text-2xl font-bold ${
-                      user?.balance >= 0 ? "text-emerald-400" : "text-red-400"
-                    }`}
+                  // className={`text-2xl font-bold ${
+                  //   user?.balance >= 0 ? "text-emerald-400" : "text-red-400"
+                  // }`}
                   >
-                    €{user?.balance.toFixed(2)}
+                    {/* €{user?.balance.toFixed(2)} */}
                   </h3>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center">
@@ -301,9 +285,10 @@ export default function MovementsPage() {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="bg-slate-700 border border-slate-600 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-100"
                 >
+                  <option value="all">Todas las categorias</option>
                   {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category === "all" ? "Todas las categorías" : category}
+                    <option key={category._id} value={category.name}>
+                      {category.name}
                     </option>
                   ))}
                 </select>

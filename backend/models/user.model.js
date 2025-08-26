@@ -32,10 +32,6 @@ const userSchema = new mongoose.Schema(
     verificationCodeExpiresAt: Date,
     resetPasswordToken: String,
     resetPasswordTokenExpiresAt: Date,
-    balance: {
-      type: Number,
-      default: 0,
-    },
     phoneNumber: {
       type: String,
       validate: {

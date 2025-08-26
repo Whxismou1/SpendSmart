@@ -1,8 +1,8 @@
-# Expenses Tracker
+# Spend Smart
 
 ## Descripción
 
-**Expenses Tracker** es una aplicación en desarrollo para gestionar tus finanzas personales. Permite registrar ingresos y gastos, y categorizar tus transacciones.
+**Spend Smart** es una aplicación en desarrollo para gestionar tus finanzas personales. Permite registrar ingresos y gastos, y categorizar tus transacciones.
 
 ## Tecnologías utilizadas
 
