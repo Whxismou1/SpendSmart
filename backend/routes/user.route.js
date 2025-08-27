@@ -11,4 +11,7 @@ userRouter.post(
   userController.uploadProfilePicture
 );
 
+userRouter.post("/change-password", verifyToken, userController.changePassword);
+
+
 module.exports = userRouter;

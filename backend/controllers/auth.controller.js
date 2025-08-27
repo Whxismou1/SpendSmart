@@ -288,34 +288,7 @@ const checkAuth = async (req, res) => {
   }
 };
 
-const changePassword = async (req, res) => {
-  try {
-    const { currentPassword, newPassword, confirmPassword } = req.body;
 
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({ message: "Password didnt match " });
-    }
-
-    const user = await UserModel.findById(req.userID);
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid operation." });
-    }
-
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const newHash = await bcrypt.hash(newPassword, 10);
-    user.password = newHash;
-
-    await user.save();
-    return res.status(200).json({ message: "Password changed successfully!" });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error." });
-  }
-};
 
 module.exports = {
   register,
@@ -325,6 +298,5 @@ module.exports = {
   resetPassword,
   logout,
   checkAuth,
-  changePassword,
   validateResetToken,
 };

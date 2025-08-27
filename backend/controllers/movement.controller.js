@@ -4,6 +4,7 @@ const ExcelJS = require("exceljs");
 const userModel = require("../models/user.model");
 const movementModel = require("../models/movement.model");
 const CategoryModel = require("../models/category.model");
+
 const addMovement = async (req, res) => {
   const { description, amount, categoryID, type, date, time } = req.body;
   const userID = req.userID;
@@ -173,10 +174,99 @@ const downloadMovements = async (req, res) => {
       .json({ success: false, message: "Server error: " + error.message });
   }
 };
+const getDashboardSummary = async (req, res) => {
+  try {
+    const userID = req.userID;
+    const movements = await movementModel
+      .find({ userID })
+      .sort({ date: -1 })
+      .populate("category", "name icon color isDefault");
+
+    const incomes = movements
+      .filter((m) => m.type === "income")
+      .reduce((acc, m) => acc + m.amount, 0);
+
+    const expenses = movements
+      .filter((m) => m.type === "expense")
+      .reduce((acc, m) => acc + m.amount, 0);
+
+    const balance = incomes - expenses;
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const currentYear = now.getFullYear();
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+    const filterByMonth = (type, month, year) =>
+      movements
+        .filter(
+          (m) =>
+            m.type === type &&
+            new Date(m.date).getMonth() === month &&
+            new Date(m.date).getFullYear() === year
+        )
+        .reduce((acc, m) => acc + m.amount, 0);
+
+    const currentMonthIncomes = filterByMonth(
+      "income",
+      currentMonth,
+      currentYear
+    );
+    const lastMonthIncomes = filterByMonth("income", lastMonth, lastMonthYear);
+
+    const currentMonthExpenses = filterByMonth(
+      "expense",
+      currentMonth,
+      currentYear
+    );
+    const lastMonthExpenses = filterByMonth(
+      "expense",
+      lastMonth,
+      lastMonthYear
+    );
+
+    const currentMonthBalance = currentMonthIncomes - currentMonthExpenses;
+    const lastMonthBalance = lastMonthIncomes - lastMonthExpenses;
+
+    const getVariation = (current, last) => {
+      if (last === 0) return current > 0 ? 100 : 0;
+      return ((current - last) / last) * 100;
+    };
+
+    res.json({
+      success: true,
+      summary: {
+        balance,
+        incomes,
+        expenses,
+        variations: {
+          balance: getVariation(currentMonthBalance, lastMonthBalance).toFixed(
+            2
+          ),
+          incomes: getVariation(currentMonthIncomes, lastMonthIncomes).toFixed(
+            2
+          ),
+          expenses: getVariation(
+            currentMonthExpenses,
+            lastMonthExpenses
+          ).toFixed(2),
+        },
+      },
+      recentMovements: movements,
+    });
+  } catch (error) {
+    console.error("Error en getDashboardSummary:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error al obtener resumen" });
+  }
+};
 
 module.exports = {
   addMovement,
   getAllMovements,
   removeMovementByID,
   downloadMovements,
+  getDashboardSummary,
 };

@@ -92,16 +92,6 @@ export default function MovementsPage() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // const categories = [
-  //   "all",
-  //   "Alimentación",
-  //   "Transporte",
-  //   "Entretenimiento",
-  //   "Salud",
-  //   "Ingresos",
-  //   "Transferencias",
-  // ];
-  // const types = ["all", "income", "expense"];
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =

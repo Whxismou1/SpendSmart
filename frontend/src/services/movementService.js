@@ -33,7 +33,7 @@ export const getAllMovements = async () => {
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || "Failed to fetch movements");
     }
@@ -67,6 +67,31 @@ export const deleteMovementByID = async (id) => {
   }
 };
 
+export const getDashboardSummary = async () => {
+  try {
+    const response = await fetch(BASE_URL + "/dashboardSummary", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch movements");
+    }
+
+    console.log("ddd", data);
+
+    return data;
+  } catch (error) {
+    console.error("Error during getAllMovements:", error.message);
+    throw error;
+  }
+};
+
 export const addMovement = async (newMovement) => {
   try {
     const response = await fetch(BASE_URL + "/add", {
@@ -89,5 +114,3 @@ export const addMovement = async (newMovement) => {
     throw error;
   }
 };
-
-

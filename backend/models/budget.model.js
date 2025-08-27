@@ -35,7 +35,6 @@ const budgetSchema = new mongoose.Schema(
           required: true,
         },
         budget: { type: Number, required: true },
-        spent: { type: Number, default: 0 },
         color: { type: String },
       },
     ],

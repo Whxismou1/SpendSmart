@@ -3,11 +3,12 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 require("dotenv").config();
 
+const dbConfig = require("./config/db.config");
 const authRouter = require("./routes/auth.route");
 const movementRouter = require("./routes/movement.route");
-const categoriesRouter = require("./routes/categories.route")
-const dbConfig = require("./config/db.config");
+const categoriesRouter = require("./routes/categories.route");
 const userRouter = require("./routes/user.route");
+const budgetRouter = require("./routes/budget.route");
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/movements", movementRouter);
 app.use("/api/v1/categories", categoriesRouter);
+app.use("/api/v1/budgets", budgetRouter);
+
 app.use("/api/v1/users", userRouter);
 
 const server = app.listen(PORT, () => {

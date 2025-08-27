@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const {
-  movementCategories,
-  movementTypes,
   categoryIcons,
 } = require("../utils/movements.enums");
 
@@ -35,6 +33,11 @@ const movementSchema = new mongoose.Schema(
       enum: ["income", "expense"],
       required: true,
     },
+    budgetID: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Budget",
+      default: null,
+    }
   },
   { timestamps: true }
 );

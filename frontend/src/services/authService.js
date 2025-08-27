@@ -19,33 +19,6 @@ export const login = async (email, password) => {
   return data;
 };
 
-export const changePassword = async (
-  currentPassword,
-  newPassword,
-  confirmPassword
-) => {
-  try {
-    const res = await fetch(BASE_URL + "/change-password", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to logout");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error changing password:", error.message);
-    throw error;
-  }
-};
 
 export const logout = async () => {
   try {

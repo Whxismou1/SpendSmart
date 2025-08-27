@@ -29,7 +29,6 @@ const defaultCategories = [
 
 const addDefaultCategories = async (req, res) => {
   try {
-    // Ver si ya existen categorías por defecto
     const existing = await CategoryModel.find({ isDefault: true });
 
     if (existing.length > 0) {
@@ -38,7 +37,6 @@ const addDefaultCategories = async (req, res) => {
         .json({ message: "Las categorías por defecto ya existen" });
     }
 
-    // Insertar categorías globales
     const categories = await CategoryModel.insertMany(
       defaultCategories.map((cat) => ({ ...cat, isDefault: true }))
     );
@@ -114,7 +112,65 @@ const getAllCategories = async (req, res) => {
   res.json(result);
 };
 
+const addSpecificCategory = async (req, res) => {
+  const userID = req.userID;
+
+  const { name, icon, color } = req.body;
+  console.log(name, icon, color);
+
+  if (!name) {
+    return res.status(400).json({ message: "Faltan datos" });
+  }
+
+  const categoryOnDb = await CategoryModel.findOne({ userID, name });
+
+  if (categoryOnDb) {
+    return res.status(400).json({ message: "Ya existe la categoria " });
+  }
+
+  const newCategory = new CategoryModel({
+    userID,
+    name,
+    icon,
+    color,
+  });
+
+  await newCategory.save();
+
+  return res.status(201).json({
+    success: true,
+    message: "Categoría creada con éxito",
+    category: newCategory,
+  });
+};
+
+const deleteSpecificCategory = async (req, res) => {
+  const userID = req.userID;
+  const categoryID = req.params.id;
+  console.log("wa")
+  const category = await CategoryModel.findOneAndDelete({
+    _id: categoryID,
+    userID,
+    isDefault: false,
+  });
+
+  if (!category) {
+    return res.status(404).json({
+      success: false,
+      message: "Categoría no encontrada o no tienes permisos",
+    });
+  }
+
+  res.json({
+    success: true,
+    message: "Categoría eliminada correctamente",
+    category,
+  });
+};
+
 module.exports = {
   addDefaultCategories,
   getAllCategories,
+  addSpecificCategory,
+  deleteSpecificCategory,
 };

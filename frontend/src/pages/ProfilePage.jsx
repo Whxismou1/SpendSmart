@@ -3,8 +3,7 @@ import { Camera, Lock, Menu, User, Eye, EyeOff } from "lucide-react";
 import { useState, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import useAuthStore from "../stores/authStore";
-import { changeProfilePicture } from "../services/user.service";
-import { changePassword } from "../services/authService";
+import { changeProfilePicture, changePassword } from "../services/user.service";
 import toast from "react-hot-toast";
 
 export default function ProfilePage() {
@@ -55,7 +54,6 @@ export default function ProfilePage() {
       formData.append("profilePicture", file);
 
       const response = await changeProfilePicture(formData);
-      console.log("Imagen subida con éxito:", response);
       setUser({
         ...user,
         profilePicture:
@@ -63,9 +61,8 @@ export default function ProfilePage() {
       });
 
       toast.success("Foto de perfil actualizada");
-    } catch (error) {
+    } catch {
       toast.error("Error subiendo la imagen");
-      console.log(error);
     }
   };
 
@@ -120,7 +117,7 @@ export default function ProfilePage() {
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <User size={48} className="text-white" />
+                <User size={48} className="text-white cursor-pointer" />
               )}
             </div>
           </div>

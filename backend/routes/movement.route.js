@@ -17,4 +17,11 @@ movementRouter.post(
   authMiddleware,
   movementController.downloadMovements
 );
+
+movementRouter.get(
+  "/dashboardSummary",
+  authMiddleware,
+  movementController.getDashboardSummary
+);
+
 module.exports = movementRouter;

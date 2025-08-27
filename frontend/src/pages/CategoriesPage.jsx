@@ -1,64 +1,20 @@
 import { motion } from "framer-motion";
-import { Edit, Menu, Search, Tag, Trash2 } from "lucide-react";
+import { Edit, Menu, Plus, Search, Tag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import AddCategoyModal from "../components/AddCategoyModal";
 import Sidebar from "../components/Sidebar";
-import { getCategoriesData } from "../services/categoriesService";
+import toast from "react-hot-toast";
+import {
+  deleteSpecificCategory,
+  getCategoriesData,
+} from "../services/categoriesService";
 
-// const mockCategories = [
-//   {
-//     id: 1,
-//     name: "Alimentación",
-//     color: "#ef4444",
-//     icon: "🍔",
-//     budget: 400,
-//     spent: 285.5,
-//   },
-//   {
-//     id: 2,
-//     name: "Transporte",
-//     color: "#3b82f6",
-//     icon: "🚗",
-//     budget: 200,
-//     spent: 150.0,
-//   },
-//   {
-//     id: 3,
-//     name: "Entretenimiento",
-//     color: "#8b5cf6",
-//     icon: "🎬",
-//     budget: 100,
-//     spent: 75.99,
-//   },
-//   {
-//     id: 4,
-//     name: "Salud",
-//     color: "#10b981",
-//     icon: "🏥",
-//     budget: 150,
-//     spent: 45.0,
-//   },
-//   {
-//     id: 5,
-//     name: "Educación",
-//     color: "#f59e0b",
-//     icon: "📚",
-//     budget: 300,
-//     spent: 120.0,
-//   },
-//   {
-//     id: 6,
-//     name: "Ropa",
-//     color: "#ec4899",
-//     icon: "👕",
-//     budget: 200,
-//     spent: 89.99,
-//   },
-// ];
 
 export default function CategoriesPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchCategoriesSummary() {
@@ -69,6 +25,22 @@ export default function CategoriesPage() {
 
     fetchCategoriesSummary();
   }, []);
+
+  const handleAddCategory = (category) => {
+    setCategories((prev) => [category, ...prev]);
+  };
+
+  const handleDeleteCategory = async (category) => {
+    console.log(category);
+    try {
+      await deleteSpecificCategory(category.id);
+      setCategories((prev) => prev.filter((t) => t.id !== category.id));
+      toast.success("Categoria eliminada correctamente");
+    } catch {
+      toast.error("No se ha podido eliminar el movimiento");
+    }
+  };
+
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -98,6 +70,18 @@ export default function CategoriesPage() {
             </div>
 
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity flex items-center space-x-2"
+              >
+                <Plus size={16} />
+                <span>Nueva Categoria</span>
+              </button>
+              <AddCategoyModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onAdd={handleAddCategory}
+              />
               <div className="relative">
                 <input
                   type="text"
@@ -112,10 +96,6 @@ export default function CategoriesPage() {
                 />
               </div>
 
-              {/* <button className="px-4 py-2 gradient-primary rounded-lg text-white font-medium hover:opacity-90 transition-opacity flex items-center space-x-2">
-                <Plus size={16} />
-                <span>Nueva Categoría</span>
-              </button> */}
             </div>
           </div>
         </header>
@@ -125,7 +105,7 @@ export default function CategoriesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCategories.map((category, index) => (
               <motion.div
-                key={category.id}
+                key={category?.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -146,7 +126,7 @@ export default function CategoriesPage() {
                       </h3>
                       {category.budget > 0 ? (
                         <p className="text-sm text-slate-400">
-                          Presupuesto: €{category.budget}
+                          Presupuesto: €{category?.budget}
                         </p>
                       ) : (
                         <p className="text-sm text-slate-400">
@@ -162,7 +142,10 @@ export default function CategoriesPage() {
                       <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
                         <Edit size={16} className="text-slate-400" />
                       </button>
-                      <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                      <button
+                        onClick={() => handleDeleteCategory(category)}
+                        className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                      >
                         <Trash2 size={16} className="text-red-400" />
                       </button>
                     </div>
@@ -175,12 +158,12 @@ export default function CategoriesPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Gastado</span>
                     <span className="text-slate-100 font-medium">
-                      €{category.spent.toFixed(2)}
+                      €{category?.spent?.toFixed(2)}
                     </span>
                   </div>
 
                   {/* Mostrar barra y porcentaje solo si hay presupuesto */}
-                  {category.budget > 0 && (
+                  {category?.budget > 0 && (
                     <>
                       <div className="w-full bg-slate-700 rounded-full h-2">
                         <div
@@ -188,7 +171,7 @@ export default function CategoriesPage() {
                           style={{
                             backgroundColor: category.color,
                             width: `${Math.min(
-                              (category.spent / category.budget) * 100,
+                              (category?.spent / category?.budget) * 100,
                               100
                             )}%`,
                           }}
@@ -196,13 +179,13 @@ export default function CategoriesPage() {
                       </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-slate-400">
-                          {((category.spent / category.budget) * 100).toFixed(
+                          {((category?.spent / category?.budget) * 100).toFixed(
                             1
                           )}
                           % usado
                         </span>
                         <span className="text-slate-400">
-                          €{(category.budget - category.spent).toFixed(2)}{" "}
+                          €{(category?.budget - category?.spent).toFixed(2)}{" "}
                           restante
                         </span>
                       </div>
